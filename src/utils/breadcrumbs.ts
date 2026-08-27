@@ -11,6 +11,15 @@ type BuildBreadcrumbOptions = {
 const isNumericSegment = (value?: string) =>
   typeof value === "string" && /^\d+$/.test(value);
 
+const localizedPathLabels: Record<string, string> = {
+  posts: "文章",
+  archives: "归档",
+  tags: "标签",
+  search: "搜索",
+  about: "关于",
+  galleries: "图库",
+};
+
 const normalizePathname = (pathname: string) =>
   pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
 
@@ -23,6 +32,8 @@ const decodeSegment = (value: string) => {
 };
 
 export const formatPathSegmentLabel = (segment: string, locale?: string) => {
+  if (localizedPathLabels[segment]) return localizedPathLabels[segment];
+
   const readable = decodeSegment(segment)
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")

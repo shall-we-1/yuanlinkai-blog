@@ -1,0 +1,89 @@
+---
+
+---
+
+<div class="canvas-nest-background" data-canvas-nest aria-hidden="true"></div>
+
+<script>
+  import CanvasNest from "canvas-nest.js";
+
+  type CanvasNestWindow = Window & {
+    canvasNestInstance?: CanvasNest;
+    canvasNestMediaCleanup?: () => void;
+  };
+
+  const canvasWindow = window as CanvasNestWindow;
+  const disabledMediaQuery =
+    "(max-width: 768px), (prefers-reduced-motion: reduce)";
+
+  function destroyCanvasNest() {
+    canvasWindow.canvasNestInstance?.destroy();
+    canvasWindow.canvasNestInstance = undefined;
+
+    document
+      .querySelectorAll("[data-canvas-nest] canvas")
+      .forEach(canvas => canvas.remove());
+  }
+
+  function syncCanvasNest(mediaQuery: MediaQueryList) {
+    destroyCanvasNest();
+
+    const container = document.querySelector<HTMLElement>("[data-canvas-nest]");
+    if (!container || mediaQuery.matches) return;
+
+    const config = {
+      color: "0,0,255",
+      pointColor: "0,0,255",
+      opacity: 0.7,
+      count: 99,
+      zIndex: 0,
+    };
+
+    canvasWindow.canvasNestInstance = new CanvasNest(container, config);
+  }
+
+  function initCanvasNest() {
+    canvasWindow.canvasNestMediaCleanup?.();
+    destroyCanvasNest();
+
+    const mediaQuery = window.matchMedia(disabledMediaQuery);
+    const handleMediaChange = () => syncCanvasNest(mediaQuery);
+
+    mediaQuery.addEventListener("change", handleMediaChange);
+    canvasWindow.canvasNestMediaCleanup = () => {
+      mediaQuery.removeEventListener("change", handleMediaChange);
+      canvasWindow.canvasNestMediaCleanup = undefined;
+    };
+
+    syncCanvasNest(mediaQuery);
+  }
+
+  function cleanupCanvasNest() {
+    canvasWindow.canvasNestMediaCleanup?.();
+    destroyCanvasNest();
+  }
+
+  document.addEventListener("astro:page-load", initCanvasNest);
+  document.addEventListener("astro:before-swap", cleanupCanvasNest);
+  initCanvasNest();
+</script>
+
+<style>
+  .canvas-nest-background {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .canvas-nest-background :global(canvas) {
+    pointer-events: none !important;
+  }
+
+  @media (max-width: 768px), (prefers-reduced-motion: reduce) {
+    .canvas-nest-background {
+      display: none;
+    }
+  }
+</style>

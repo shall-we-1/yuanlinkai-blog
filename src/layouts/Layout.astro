@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 import { SITE } from "@/config";
 import SearchModal from "@/components/SearchModal.astro";
+import CanvasNest from "@/components/CanvasNest.astro";
 import "@/styles/global.css";
 
 type Props = {
@@ -18,7 +19,7 @@ type Props = {
   scrollSmooth?: boolean;
   prev?: string;
   next?: string;
-  structuredData?: any;
+  structuredData?: unknown;
 };
 
 const {
@@ -48,8 +49,9 @@ const socialImageURL = new URL(ogImage, Astro.url);
 // Whether this page is a blog post (has a publish date)
 const isArticle = Boolean(pubDatetime);
 
-const finalStructuredData = structuredDataProp ?? (
-  isArticle
+const finalStructuredData =
+  structuredDataProp ??
+  (isArticle
     ? {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -96,12 +98,11 @@ const finalStructuredData = structuredDataProp ?? (
             mainEntity: {
               "@type": "Person",
               name: author,
-              description: "Developer, student, and gamer. Creator of Astro Devosfera.",
+              description: "记录阅读、学习、技术与生活中的思考。",
               ...(profile && { url: profile }),
             },
           }
-        : null
-);
+        : null);
 
 const showCursorGlow = SITE.backdropEffects.cursorGlow;
 const showGrain = SITE.backdropEffects.grain;
@@ -196,7 +197,6 @@ const showGrain = SITE.backdropEffects.grain;
       href={new URL("rss.xml", Astro.site)}
     />
 
-
     {
       // If PUBLIC_GOOGLE_SITE_VERIFICATION is set in the environment variable,
       // include google-site-verification tag in the heading
@@ -243,13 +243,21 @@ const showGrain = SITE.backdropEffects.grain;
   </head>
   <body>
     <!-- Global decorative backdrop (grid, glow, cursor glow, noise) -->
-    <div class="site-backdrop pointer-events-none" aria-hidden="true" transition:persist>
+    <div
+      class="site-backdrop pointer-events-none"
+      aria-hidden="true"
+      transition:persist
+    >
       <div class="site-grid"></div>
-      {showCursorGlow && <div class="site-cursor-glow"></div>}
-      {showGrain && <div class="site-grain"></div>}
+      {showCursorGlow && <div class="site-cursor-glow" />}
+      {showGrain && <div class="site-grain" />}
     </div>
 
-    <slot />
+    <CanvasNest />
+
+    <div class="site-content">
+      <slot />
+    </div>
 
     <SearchModal />
 
@@ -259,6 +267,15 @@ const showGrain = SITE.backdropEffects.grain;
 </html>
 
 <style>
+  .site-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    min-height: 100svh;
+    flex: 1;
+    flex-direction: column;
+  }
+
   .site-backdrop {
     position: fixed;
     inset: 0;
@@ -308,7 +325,8 @@ const showGrain = SITE.backdropEffects.grain;
     height: 800px;
     margin-left: -400px;
     margin-top: -400px;
-    transform: translate(var(--site-cx, 50vw), var(--site-cy, 50vh)) translateZ(0);
+    transform: translate(var(--site-cx, 50vw), var(--site-cy, 50vh))
+      translateZ(0);
     background: radial-gradient(
       circle,
       color-mix(in oklab, var(--accent) 8%, transparent) 0%,
@@ -345,61 +363,56 @@ const showGrain = SITE.backdropEffects.grain;
   }
 </style>
 
-{
-  showCursorGlow && (
-    <script>
-      let cursorCleanup: AbortController | null = null;
+<script>
+  let cursorCleanup: AbortController | null = null;
 
-      document.addEventListener("astro:page-load", () => {
-        // Cleanup previous listeners
-        if (cursorCleanup) cursorCleanup.abort();
-        cursorCleanup = new AbortController();
-        const { signal } = cursorCleanup;
+  document.addEventListener("astro:page-load", () => {
+    // Cleanup previous listeners
+    if (cursorCleanup) cursorCleanup.abort();
+    cursorCleanup = new AbortController();
+    const { signal } = cursorCleanup;
 
-        // Skip on touch devices and respect reduced-motion preference.
-        if (
-          window
-            .matchMedia("(pointer: coarse), (prefers-reduced-motion: reduce)")
-            .matches
-        ) {
-          return;
-        }
+    // Skip on touch devices and respect reduced-motion preference.
+    if (
+      window.matchMedia("(pointer: coarse), (prefers-reduced-motion: reduce)")
+        .matches
+    ) {
+      return;
+    }
 
-        const cursorGlow = document.querySelector<HTMLElement>(".site-cursor-glow");
-        let ticking = false;
-        let isActive = false;
+    const cursorGlow = document.querySelector<HTMLElement>(".site-cursor-glow");
+    let ticking = false;
+    let isActive = false;
 
-        if (!cursorGlow) return;
+    if (!cursorGlow) return;
 
-        document.addEventListener(
-          "mousemove",
-          (e: MouseEvent) => {
-            if (ticking) return;
+    document.addEventListener(
+      "mousemove",
+      (e: MouseEvent) => {
+        if (ticking) return;
 
-            ticking = true;
-            window.requestAnimationFrame(() => {
-              cursorGlow.style.setProperty("--site-cx", `${e.clientX}px`);
-              cursorGlow.style.setProperty("--site-cy", `${e.clientY}px`);
-              if (!isActive) {
-                cursorGlow.classList.add("active");
-                isActive = true;
-              }
-              ticking = false;
-            });
-          },
-          { signal, passive: true }
-        );
+        ticking = true;
+        window.requestAnimationFrame(() => {
+          cursorGlow.style.setProperty("--site-cx", `${e.clientX}px`);
+          cursorGlow.style.setProperty("--site-cy", `${e.clientY}px`);
+          if (!isActive) {
+            cursorGlow.classList.add("active");
+            isActive = true;
+          }
+          ticking = false;
+        });
+      },
+      { signal, passive: true }
+    );
 
-        document.addEventListener(
-          "mouseleave",
-          () => {
-            if (!isActive) return;
-            cursorGlow.classList.remove("active");
-            isActive = false;
-          },
-          { signal }
-        );
-      });
-    </script>
-  )
-}
+    document.addEventListener(
+      "mouseleave",
+      () => {
+        if (!isActive) return;
+        cursorGlow.classList.remove("active");
+        isActive = false;
+      },
+      { signal }
+    );
+  });
+</script>

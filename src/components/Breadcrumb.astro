@@ -14,26 +14,42 @@ const breadcrumbs = buildBreadcrumbItems(Astro.url.pathname, {
   compactNumericPagination: true,
 });
 
-const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
+const isPostDetail = /^\/posts\/[^/]+\/?$/.test(Astro.url.pathname);
+const displayBreadcrumbs = breadcrumbs.map((item, index) =>
+  isPostDetail && index === breadcrumbs.length - 1
+    ? { ...item, label: "文章详情" }
+    : item
+);
+
+const currentPageLabel = displayBreadcrumbs.at(-1)?.label ?? "首页";
 ---
 
 <nav
   class:list={["app-layout mt-6 mb-2", { "overflow-hidden": withBackButton }]}
-  aria-label={withBackButton ? "Contextual navigation" : "breadcrumb"}
+  aria-label={withBackButton ? "上下文导航" : "面包屑导航"}
 >
-  <div class:list={["flex items-center gap-3", { "justify-between": withBackButton }]}>
-    {withBackButton && (
-      <a
-        id="back-button"
-        href="/"
-        class="breadcrumb-bar back-btn group flex-shrink-0 !gap-2 text-foreground/60 transition-colors duration-200 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background font-firacode text-sm"
-        aria-label={`Go back to the previous page. Current context: ${currentPageLabel}`}
-      >
-        <IconChevronLeft class="size-4 opacity-70 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
-        <span aria-hidden="true" class="tracking-wide">cd ..</span>
-        <span class="visually-hidden">Go back</span>
-      </a>
-    )}
+  <div
+    class:list={[
+      "flex items-center gap-3",
+      { "justify-between": withBackButton },
+    ]}
+  >
+    {
+      withBackButton && (
+        <a
+          id="back-button"
+          href="/"
+          class="breadcrumb-bar back-btn group flex-shrink-0 !gap-2 font-firacode text-sm text-foreground/60 transition-colors duration-200 hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+          aria-label={`返回上一页。当前位置：${currentPageLabel}`}
+        >
+          <IconChevronLeft class="size-4 opacity-70 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
+          <span aria-hidden="true" class="tracking-wide">
+            cd ..
+          </span>
+          <span class="visually-hidden">返回上一页</span>
+        </a>
+      )
+    }
 
     <ol
       class:list={[
@@ -43,32 +59,39 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
         },
       ]}
     >
-      <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}> 
+      <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}>
         <a
           href="/"
-          class:list={["breadcrumb-home", { "breadcrumb-link-soft": withBackButton }]}
-          aria-label="Home"
-          title="Home"
+          class:list={[
+            "breadcrumb-home",
+            { "breadcrumb-link-soft": withBackButton },
+          ]}
+          aria-label="首页"
+          title="首页"
         >
           <span aria-hidden="true">~</span>
-          <span class="visually-hidden">Home</span>
+          <span class="visually-hidden">首页</span>
         </a>
       </li>
-    {
-      breadcrumbs.map(item => (
-        <li class:list={["breadcrumb-item", { "is-current": !item.href }]}>
-          {item.href ? (
-            <a href={item.href} class="breadcrumb-link">
-              {item.label}
-            </a>
-          ) : (
-            <span class="breadcrumb-current" aria-current="page" title={item.label}>
-              {item.label}
-            </span>
-          )}
-        </li>
-      ))
-    }
+      {
+        displayBreadcrumbs.map(item => (
+          <li class:list={["breadcrumb-item", { "is-current": !item.href }]}>
+            {item.href ? (
+              <a href={item.href} class="breadcrumb-link">
+                {item.label}
+              </a>
+            ) : (
+              <span
+                class="breadcrumb-current"
+                aria-current="page"
+                title={item.label}
+              >
+                {item.label}
+              </span>
+            )}
+          </li>
+        ))
+      }
     </ol>
   </div>
 </nav>
@@ -251,45 +274,40 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
   }
 </style>
 
-{
-  withBackButton && (
-    <script>
-      const BACK_BUTTON_SELECTOR = "#back-button";
-      const FALLBACK_BACK_URL = "/";
+<script>
+  const BACK_BUTTON_SELECTOR = "#back-button";
+  const FALLBACK_BACK_URL = "/";
 
-      function toSafeBackPath(rawBackUrl: string | null) {
-        if (!rawBackUrl) return FALLBACK_BACK_URL;
+  function toSafeBackPath(rawBackUrl: string | null) {
+    if (!rawBackUrl) return FALLBACK_BACK_URL;
 
-        try {
-          const parsedUrl = new URL(rawBackUrl, window.location.origin);
-          const isSameOrigin = parsedUrl.origin === window.location.origin;
-          const isHttpProtocol =
-            parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+    try {
+      const parsedUrl = new URL(rawBackUrl, window.location.origin);
+      const isSameOrigin = parsedUrl.origin === window.location.origin;
+      const isHttpProtocol =
+        parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
 
-          if (!isSameOrigin || !isHttpProtocol) return FALLBACK_BACK_URL;
+      if (!isSameOrigin || !isHttpProtocol) return FALLBACK_BACK_URL;
 
-          return (
-            `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` ||
-            FALLBACK_BACK_URL
-          );
-        } catch {
-          return FALLBACK_BACK_URL;
-        }
-      }
+      return (
+        `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` ||
+        FALLBACK_BACK_URL
+      );
+    } catch {
+      return FALLBACK_BACK_URL;
+    }
+  }
 
-      function updateGoBackUrl() {
-        const backButton = document.querySelector<HTMLAnchorElement>(
-          BACK_BUTTON_SELECTOR
-        );
+  function updateGoBackUrl() {
+    const backButton =
+      document.querySelector<HTMLAnchorElement>(BACK_BUTTON_SELECTOR);
 
-        if (!backButton) return;
+    if (!backButton) return;
 
-        const rawBackUrl = sessionStorage.getItem("backUrl");
-        backButton.href = toSafeBackPath(rawBackUrl);
-      }
+    const rawBackUrl = sessionStorage.getItem("backUrl");
+    backButton.href = toSafeBackPath(rawBackUrl);
+  }
 
-      document.addEventListener("astro:page-load", updateGoBackUrl);
-      updateGoBackUrl();
-    </script>
-  )
-}
+  document.addEventListener("astro:page-load", updateGoBackUrl);
+  updateGoBackUrl();
+</script>

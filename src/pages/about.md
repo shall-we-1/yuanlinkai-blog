@@ -1,29 +1,23 @@
 ---
 layout: ../layouts/AboutLayout.astro
-title: "About"
-description: "Get to know Andrés, the web developer, student, and gamer behind Astro Devosfera."
+title: "关于"
+description: "关于这个个人知识空间的简单说明。"
 ---
 
-Welcome to my digital corner. I am a **developer** and **student** passionate about technology, video games, and building things that live on the internet.
+这里是一个用于长期记录与整理的个人知识空间。
 
-## Who am I?
+## 记录什么
 
-My name is Andrés, and since I can remember, I have always been curious about understanding how things work — from taking apart toys as a child to taking apart other people's code at 2 AM. I am currently studying engineering while developing projects that challenge me to learn something new every day.
+内容主要包括阅读记录、读书感悟、学习笔记、技术笔记，以及生活中值得留下来的思考。
 
-When I am not programming, I am probably in some virtual world exploring maps, completing missions, or competing online. Video games are not just my hobby, they also taught me how to solve problems, work in a team, and, above all, not to give up after attempt #847.
+这些内容并不追求固定形式。短小的想法可以是一篇随笔，系统整理的知识也可以逐步发展成更完整的文章。
 
-## What I do
+## 为什么建立这个空间
 
-- **Web Development** — I love building modern web experiences with technologies like Astro, React, TypeScript, and everything the JavaScript ecosystem has to offer.
-- **Open Source** — I believe in the power of open source. You can find my projects on [GitHub](https://github.com/0xdres/).
-- **Continuous Learning** — I am always exploring new tools, frameworks, and concepts. Technology evolves fast and I like to keep up with the pace.
+很多想法在刚出现时很清晰，但如果没有及时整理，很快就会被新的信息覆盖。写下来，是为了给思考留下可以回顾的痕迹。
 
-## Gaming
+这个空间也会保持简单，让注意力尽量回到文字、理解与长期积累本身。
 
-Video games are part of my DNA. From epic RPGs to competitive shooters, I enjoy practically any genre. It's that space where creativity meets strategy and pure fun.
+## 持续整理
 
-## This blog
-
-**Devosfera** was born as a space to document my journey as a developer, share what I learn, and connect with people who share the same passions. Here you will find posts about development, technology, and the occasional random late-night reflection.
-
-> _"Code is poetry, but with more semicolons."_ — Me, probably
+文章会随着理解的变化继续补充与修订。比起一次写得完整，更重要的是持续记录、定期回顾，并逐渐形成自己的知识脉络。

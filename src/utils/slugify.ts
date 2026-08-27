@@ -6,12 +6,24 @@ import slugify from "slugify";
  */
 const hasNonLatin = (str: string): boolean => /[^\x00-\x7F]/.test(str);
 
+const localizedSlugs: Record<string, string> = {
+  记录: "record",
+  随笔: "essays",
+  阅读: "reading",
+  思考: "reflections",
+  学习: "learning",
+  笔记: "notes",
+  技术: "technology",
+};
+
 /**
  * Slugify a string using a hybrid approach:
  * - For Latin-only strings: use slugify (eg: "E2E Testing" -> "e2e-testing", "TypeScript 5.0" -> "typescript-5.0")
  * - For strings with non-Latin characters: use lodash.kebabcase (preserves non-Latin chars)
  */
 export const slugifyStr = (str: string): string => {
+  if (localizedSlugs[str]) return localizedSlugs[str];
+
   if (hasNonLatin(str)) {
     // Preserve non-Latin characters (e.g., Burmese, Chinese, etc.)
     return kebabcase(str);

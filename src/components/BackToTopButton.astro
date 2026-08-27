@@ -16,8 +16,8 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     id="back-to-top-button"
     type="button"
     tabindex="-1"
-    aria-label="Go back to top"
-    title="Go back to top"
+    aria-label="返回顶部"
+    title="返回顶部"
     data-button="back-to-top"
     class:list={[
       "group relative flex flex-col items-center justify-center gap-0.5",
@@ -39,8 +39,7 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     <!-- 2: Button Background, leaves 3px of the ring visible -->
     <span
       aria-hidden="true"
-      class="absolute inset-[3px] z-10 rounded-full bg-background/95"
-    ></span>
+      class="absolute inset-[3px] z-10 rounded-full bg-background/95"></span>
     <!-- 3: Content (icon + label) -->
     <IconArrowNarrowUp
       aria-hidden="true"
@@ -49,9 +48,9 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     <span
       class="relative z-20 text-[9px] font-bold tracking-widest text-accent/70 uppercase"
     >
-      top
+      顶部
     </span>
-    <span class="sr-only">Go back to top</span>
+    <span class="sr-only">返回顶部</span>
   </button>
 </div>
 
@@ -64,9 +63,8 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     const { signal } = backToTopCleanup;
 
     const rootElement = document.documentElement;
-    const btnContainer = document.querySelector<HTMLElement>(
-      "#btt-btn-container"
-    );
+    const btnContainer =
+      document.querySelector<HTMLElement>("#btt-btn-container");
     const backToTopBtn = document.querySelector<HTMLButtonElement>(
       "[data-button='back-to-top']"
     );
