@@ -1,9 +1,10 @@
 export const SITE = {
-  website: "http://localhost:4321/",
-  author: "袁琳凯",
+  website: "https://yuanlinkai-blog.3449185324.workers.dev/",
+  author: "Lucky",
   profile: process.env.PUBLIC_SOCIAL_GITHUB ?? "", // set in .env
   desc: "记录阅读、学习、技术与生活中的思考。",
-  title: "袁琳凯",
+  title: "Lucky的随笔",
+  heroTitle: "Lucky",
   ogImage: "",
   lightAndDarkMode: true,
   postPerIndex: 6,

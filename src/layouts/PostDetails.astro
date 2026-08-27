@@ -9,6 +9,7 @@ import ShareLinks from "@/components/ShareLinks.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import GalleryEmbed from "@/components/GalleryEmbed.astro";
+import PostStats from "@/components/PostStats.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import { getReadingTime } from "@/utils/readingTime";
@@ -36,6 +37,7 @@ const {
 
 const { Content } = await render(post);
 const readingTime = post.body ? getReadingTime(post.body) : null;
+const statsKey = getPath(post.id, post.filePath);
 
 let ogImageUrl: string | undefined;
 
@@ -192,6 +194,8 @@ const nextPost =
               </div>
             )
           }
+
+          <PostStats slug={statsKey} />
 
           <!-- Edit post -->
           <EditPost

@@ -1,8 +1,19 @@
 {
   "name": "yuanlinkai-blog",
+  "main": "./worker/index.js",
   "compatibility_date": "2026-08-27",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yuanlinkai-blog-db",
+      "database_id": "efbe2010-e332-45f9-9530-a9789f0859fa",
+      "migrations_dir": "migrations"
+    }
+  ]
 }
