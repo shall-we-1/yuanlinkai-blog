@@ -155,7 +155,7 @@ pnpm run dev
 - Lint：`pnpm run lint` 通过。
 - Build：强制刷新 Astro 内容层缓存后，`pnpm run build` 通过；Astro Check 为 0 errors、0 warnings、0 hints，最终生成 8 个静态页面且不再包含 Demo 路由。
 - 浏览器检查：Windows Edge 真实 localhost 验证通过，指定页面无横向溢出，最终控制台为 0 错误；首页保留原标语、主题文案、终端提示和已冻结视觉效果。
-- Git 正式提交：`Finalize Yuan Linkai personal blog`（提交 hash 将在完成提交后回填）。
+- Git 正式提交：`ee5feb3d9a0d1b42185becd25ccfa274f4fa8171`（`Finalize Yuan Linkai personal blog`）。
 - 正式分支：提交后由 `chinese-personal-blog` 重命名为 `main`；`upstream-main` 保留。
 - GitHub 目标仓库：`https://github.com/shall-we-1/yuanlinkai-blog`。
 - Push：未执行。当前 Codex 环境中的 GitHub CLI 未读取到认证状态；同时本地 `origin` 指向 `https://github.com/0xdres/astro-devosfera.git`。根据本阶段安全规则，未修改凭据、未修改或删除现有远程，也未尝试创建仓库或推送。
