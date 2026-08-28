@@ -34,10 +34,10 @@ pnpm install
 pnpm run dev
 ```
 
-默认访问：
+在线访问：
 
 ```text
-http://localhost:4321
+https://yuanlinkai-blog.3449185324.workers.dev/
 ```
 
 生产构建：
