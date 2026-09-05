@@ -31,7 +31,7 @@ const { slug } = Astro.props;
 
   <button
     type="button"
-    class="post-like-button inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 text-foreground/70 backdrop-blur-sm transition-all duration-200 disabled:cursor-wait disabled:opacity-50"
+    class="post-like-button inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 text-foreground/70 backdrop-blur-sm transition-all duration-200 disabled:cursor-default disabled:opacity-50"
     data-like-button
     aria-label="为文章点赞"
     aria-pressed="false"
@@ -55,10 +55,18 @@ const { slug } = Astro.props;
     </svg>
     <span class="text-sm" data-like-count aria-live="polite">--</span>
   </button>
+  <span
+    class="text-xs text-foreground/50"
+    data-stats-status
+    role="status"
+    aria-live="polite"
+  ></span>
 </div>
 
 <script>
   const VISITOR_KEY = "lucky:visitor-id";
+  const UUID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   type StatsResponse = {
     views: number;
@@ -72,7 +80,7 @@ const { slug } = Astro.props;
 
   function getVisitorId() {
     let visitorId = localStorage.getItem(VISITOR_KEY);
-    if (!visitorId) {
+    if (!visitorId || !UUID_PATTERN.test(visitorId)) {
       visitorId = crypto.randomUUID();
       localStorage.setItem(VISITOR_KEY, visitorId);
     }
@@ -85,6 +93,8 @@ const { slug } = Astro.props;
   ): Promise<StatsResponse> {
     const response = await fetch(url, {
       ...options,
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
@@ -93,7 +103,23 @@ const { slug } = Astro.props;
 
     if (!response.ok)
       throw new Error(`Stats request failed: ${response.status}`);
-    return response.json() as Promise<StatsResponse>;
+    const stats = await response.json();
+    if (
+      !stats ||
+      !Number.isSafeInteger(stats.views) ||
+      stats.views < 0 ||
+      !Number.isSafeInteger(stats.likes) ||
+      stats.likes < 0 ||
+      typeof stats.liked !== "boolean"
+    ) {
+      throw new Error("Invalid stats response");
+    }
+    return stats;
+  }
+
+  function setStatus(root: HTMLElement, message: string) {
+    const status = root.querySelector<HTMLElement>("[data-stats-status]");
+    if (status) status.textContent = message;
   }
 
   function renderStats(root: HTMLElement, stats: StatsResponse) {
@@ -132,18 +158,27 @@ const { slug } = Astro.props;
         `/api/stats?slug=${encodeURIComponent(slug)}&visitorId=${encodeURIComponent(visitorId)}`
       );
       renderStats(root, currentStats);
+    } catch {
+      likeButton.disabled = true;
+      likeButton.title = "统计暂不可用";
+      likeButton.setAttribute("aria-label", "统计暂不可用，无法点赞");
+      setStatus(root, "统计暂不可用");
+      return;
+    }
 
+    let viewUnavailable = false;
+    try {
       currentStats = await requestStats("/api/view", {
         method: "POST",
         body: JSON.stringify({ slug, visitorId }),
       });
       renderStats(root, currentStats);
-      likeButton.disabled = false;
     } catch {
-      likeButton.disabled = true;
-      likeButton.title = "统计服务暂不可用";
-      return;
+      // A failed view report must not disable an already loaded like state.
+      viewUnavailable = true;
+      setStatus(root, "浏览统计暂不可用");
     }
+    likeButton.disabled = false;
 
     likeButton.addEventListener(
       "click",
@@ -162,6 +197,7 @@ const { slug } = Astro.props;
             }),
           });
           renderStats(root, currentStats);
+          setStatus(root, viewUnavailable ? "浏览统计暂不可用" : "");
 
           if (currentStats.liked && !previousStats.liked) {
             likeButton.classList.remove("stats-like-pop");
@@ -172,6 +208,7 @@ const { slug } = Astro.props;
         } catch {
           currentStats = previousStats;
           renderStats(root, previousStats);
+          setStatus(root, "点赞暂不可用，稍后可再试");
         } finally {
           likeButton.disabled = false;
           delete likeButton.dataset.loading;

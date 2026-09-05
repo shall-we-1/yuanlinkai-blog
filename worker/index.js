@@ -102,6 +102,21 @@ async function handleGetStats(request, env) {
   return json(await getStats(env.DB, slug, visitorId));
 }
 
+async function handleSummary(env) {
+  const totals = await env.DB
+    .prepare(
+      `SELECT COALESCE(SUM(views), 0) AS views,
+              COALESCE(SUM(likes), 0) AS likes
+       FROM post_stats`
+    )
+    .first();
+
+  return json({
+    views: Number(totals?.views ?? 0),
+    likes: Number(totals?.likes ?? 0),
+  });
+}
+
 async function handleView(request, env) {
   const body = await readJson(request);
   const validationError = validatePostBody(body);
@@ -198,6 +213,13 @@ async function handleApiRequest(request, env) {
       return errorResponse(405, "方法不允许", { Allow: "GET" });
     }
     return handleGetStats(request, env);
+  }
+
+  if (url.pathname === "/api/summary") {
+    if (request.method !== "GET") {
+      return errorResponse(405, "方法不允许", { Allow: "GET" });
+    }
+    return handleSummary(env);
   }
 
   if (url.pathname === "/api/view") {
