@@ -1,0 +1,132 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import PublishingHeatmap from "@/components/PublishingHeatmap.astro";
+import postFilter from "@/utils/postFilter";
+import { getReadingStats } from "@/utils/readingTime";
+import { SITE } from "@/config";
+
+const posts = (await getCollection("blog")).filter(postFilter);
+const totalWords = posts.reduce(
+  (total, post) => total + getReadingStats(post.body ?? "").wordCount,
+  0
+);
+---
+
+<Layout title={`足迹 | ${SITE.title}`} description="把一些日子留在这里。">
+  <Header />
+  <Breadcrumb />
+  <main id="main-content" class="app-layout pb-12">
+    <header class="pt-6 pb-10 text-center sm:pt-10">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">足迹</h1>
+      <p class="mt-3 text-sm text-foreground/60 sm:text-base">
+        把一些日子留在这里。
+      </p>
+    </header>
+
+    <div data-footprint-summary>
+      <dl
+        class="grid grid-cols-2 gap-x-4 gap-y-7 rounded-2xl border border-border/20 bg-muted/5 px-4 py-7 text-center backdrop-blur-sm sm:grid-cols-4"
+      >
+        <div>
+          <dt class="text-xs text-foreground/60">已发布文章</dt>
+          <dd class="mt-2">
+            <span class="font-firacode text-2xl tabular-nums" data-total-posts
+              >{posts.length.toLocaleString(SITE.lang)}</span
+            >
+            <span class="text-sm text-foreground/60">篇</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-foreground/60">留下的文字</dt>
+          <dd class="mt-2">
+            <span class="font-firacode text-2xl tabular-nums" data-total-words
+              >{totalWords.toLocaleString(SITE.lang)}</span
+            >
+            <span class="text-sm text-foreground/60">字</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-foreground/60">总浏览量</dt>
+          <dd class="mt-2">
+            <span
+              class="font-firacode text-2xl tabular-nums"
+              data-summary-views
+              aria-live="polite">--</span
+            >
+            <span class="text-sm text-foreground/60">次翻阅</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-foreground/60">总点赞量</dt>
+          <dd class="mt-2">
+            <span
+              class="font-firacode text-2xl tabular-nums"
+              data-summary-likes
+              aria-live="polite">--</span
+            >
+            <span class="text-sm text-foreground/60">个赞</span>
+          </dd>
+        </div>
+      </dl>
+      <p
+        class="mt-3 min-h-4 text-center text-xs text-foreground/50"
+        data-summary-status
+        role="status"
+        aria-live="polite"
+      >
+      </p>
+    </div>
+
+    <PublishingHeatmap {posts} />
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  async function initSummary() {
+    const root = document.querySelector<HTMLElement>(
+      "[data-footprint-summary]"
+    );
+    if (!root || root.dataset.initialized === "true") return;
+    root.dataset.initialized = "true";
+    const views = root.querySelector<HTMLElement>("[data-summary-views]");
+    const likes = root.querySelector<HTMLElement>("[data-summary-likes]");
+    const status = root.querySelector<HTMLElement>("[data-summary-status]");
+    if (!views || !likes || !status) return;
+
+    try {
+      const response = await fetch("/api/summary", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!response.ok) throw new Error("Summary unavailable");
+      const summary = await response.json();
+      if (
+        !summary ||
+        !Number.isSafeInteger(summary.views) ||
+        summary.views < 0 ||
+        !Number.isSafeInteger(summary.likes) ||
+        summary.likes < 0
+      ) {
+        throw new Error("Invalid summary response");
+      }
+      views.textContent = summary.views.toLocaleString(
+        document.documentElement.lang
+      );
+      likes.textContent = summary.likes.toLocaleString(
+        document.documentElement.lang
+      );
+    } catch {
+      views.textContent = "--";
+      likes.textContent = "--";
+      status.textContent = "统计暂不可用";
+    }
+  }
+
+  document.addEventListener("astro:page-load", () => void initSummary());
+  void initSummary();
+</script>

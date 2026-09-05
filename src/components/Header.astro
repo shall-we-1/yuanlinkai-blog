@@ -87,7 +87,7 @@ const isActive = (path: string) => {
           </button>
 
           <!-- Desktop links (always visible on sm+) -->
-          <ul class="hidden sm:flex sm:flex-row sm:items-center sm:gap-1">
+          <ul class="hidden sm:flex sm:flex-row sm:items-center sm:gap-0.5 md:gap-1">
             <li>
               <a
                 href="/posts"
@@ -100,6 +100,14 @@ const isActive = (path: string) => {
                 href="/tags"
                 class:list={["nav-link", { "nav-active": isActive("/tags") }]}
                 >标签</a
+              >
+            </li>
+            <li>
+              <a
+                href="/stats"
+                class:list={["nav-link", { "nav-active": isActive("/stats") }]}
+                aria-current={isActive("/stats") ? "page" : undefined}
+                >足迹</a
               >
             </li>
             <li>

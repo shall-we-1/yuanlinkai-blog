@@ -15,6 +15,7 @@ const localizedPathLabels: Record<string, string> = {
   posts: "文章",
   archives: "归档",
   tags: "标签",
+  stats: "足迹",
   search: "搜索",
   about: "关于",
   galleries: "图库",

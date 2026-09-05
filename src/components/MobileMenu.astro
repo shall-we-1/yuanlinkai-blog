@@ -45,9 +45,18 @@ const isActive = (path: string) => {
             <span>标签</span>
           </a>
           <a
+            href="/stats"
+            class:list={["mobile-nav-link", { active: isActive("/stats") }]}
+            aria-current={isActive("/stats") ? "page" : undefined}
+            style="--i:2"
+          >
+            <span class="mobile-nav-indicator"></span>
+            <span>足迹</span>
+          </a>
+          <a
             href="/about"
             class:list={["mobile-nav-link", { active: isActive("/about") }]}
-            style="--i:2"
+            style="--i:3"
           >
             <span class="mobile-nav-indicator"></span>
             <span>关于</span>
@@ -60,7 +69,7 @@ const isActive = (path: string) => {
                   "mobile-nav-link",
                   { active: isActive("/archives") },
                 ]}
-                style="--i:3"
+                style="--i:4"
               >
                 <span class="mobile-nav-indicator" />
                 <span>归档</span>
@@ -75,7 +84,7 @@ const isActive = (path: string) => {
                   "mobile-nav-link",
                   { active: isActive("/galleries") },
                 ]}
-                style="--i:4"
+                style="--i:5"
               >
                 <span class="mobile-nav-indicator" />
                 <span>图库</span>
