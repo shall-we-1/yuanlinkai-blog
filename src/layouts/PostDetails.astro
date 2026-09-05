@@ -10,6 +10,7 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import GalleryEmbed from "@/components/GalleryEmbed.astro";
 import PostStats from "@/components/PostStats.astro";
+import RandomPost from "@/components/RandomPost.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import { getReadingStats } from "@/utils/readingTime";
@@ -290,6 +291,8 @@ const nextPost =
       >
       </div>
     </div>
+
+    <RandomPost {posts} currentPath={statsKey} />
 
     <!-- Previous/Next Post Navigation -->
     <div data-pagefind-ignore class="grid grid-cols-2 gap-3">

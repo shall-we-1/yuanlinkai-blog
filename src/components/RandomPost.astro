@@ -1,0 +1,49 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getPath } from "@/utils/getPath";
+import postFilter from "@/utils/postFilter";
+
+type Props = {
+  posts: CollectionEntry<"blog">[];
+  currentPath: string;
+};
+
+const { posts, currentPath } = Astro.props;
+const paths = posts
+  .filter(postFilter)
+  .map(post => getPath(post.id, post.filePath))
+  .filter(path => path !== currentPath);
+---
+
+<div class="mb-6 flex justify-center" data-pagefind-ignore>
+  <button
+    type="button"
+    class="inline-flex items-center gap-2 rounded-xl border border-border/25 bg-muted/10 px-4 py-2 text-sm text-foreground/70 transition-all duration-200 enabled:hover:border-accent/40 enabled:hover:bg-accent/5 enabled:hover:text-accent disabled:cursor-default disabled:opacity-40"
+    data-random-post
+    data-random-paths={JSON.stringify(paths)}
+    disabled={paths.length === 0}
+    title={paths.length === 0 ? "暂时没有其他文章" : "翻开另一篇文章"}
+  >
+    随便翻翻 <span aria-hidden="true">↗</span>
+  </button>
+</div>
+
+<script>
+  function initRandomPosts() {
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-random-post]")
+      .forEach(button => {
+        if (button.dataset.initialized === "true") return;
+        button.dataset.initialized = "true";
+        const paths: string[] = JSON.parse(button.dataset.randomPaths ?? "[]");
+        button.disabled = paths.length === 0;
+        button.addEventListener("click", () => {
+          if (paths.length === 0) return;
+          window.location.assign(paths[Math.floor(Math.random() * paths.length)]);
+        });
+      });
+  }
+
+  document.addEventListener("astro:page-load", initRandomPosts);
+  initRandomPosts();
+</script>
