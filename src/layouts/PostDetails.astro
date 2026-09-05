@@ -12,7 +12,7 @@ import GalleryEmbed from "@/components/GalleryEmbed.astro";
 import PostStats from "@/components/PostStats.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
-import { getReadingTime } from "@/utils/readingTime";
+import { getReadingStats } from "@/utils/readingTime";
 import { SITE } from "@/config";
 
 type Props = {
@@ -36,7 +36,7 @@ const {
 } = post.data;
 
 const { Content } = await render(post);
-const readingTime = post.body ? getReadingTime(post.body) : null;
+const { wordCount, readingTime } = getReadingStats(post.body ?? "");
 const statsKey = getPath(post.id, post.filePath);
 
 let ogImageUrl: string | undefined;
@@ -171,6 +171,15 @@ const nextPost =
               size="sm"
               class="opacity-70 [&>svg]:hidden"
             />
+          </div>
+
+          <!-- Word count chip -->
+          <div
+            class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm"
+          >
+            <span class="text-sm opacity-70"
+              >{wordCount.toLocaleString(SITE.lang)} 字</span
+            >
           </div>
 
           <!-- Reading time chip -->
