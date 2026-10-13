@@ -1,0 +1,246 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+type Props = {
+  music: NonNullable<CollectionEntry<"blog">["data"]["music"]>;
+  path: string;
+};
+const { music, path } = Astro.props;
+---
+
+<section
+  class="post-music"
+  data-post-music
+  data-music-src={music.src}
+  data-music-title={music.title}
+  data-music-loop={String(music.loop)}
+  data-music-path={path}
+  data-state="idle"
+  aria-label="文章配乐"
+  data-pagefind-ignore
+>
+  <div class="music-heading">
+    <div class="music-record" aria-hidden="true"><span></span></div>
+    <div class="music-info">
+      <span class="music-eyebrow">阅读配乐</span>
+      <p class="music-title">{music.title}</p>
+      {music.artist && <p class="music-artist">{music.artist}</p>}
+    </div>
+    <button
+      type="button"
+      class="music-play"
+      data-music-play
+      aria-label="播放配乐"
+      disabled
+    >
+      <span data-music-play-icon aria-hidden="true">▶</span>
+      <span data-music-play-label>播放</span>
+    </button>
+  </div>
+  <div class="music-timeline">
+    <span data-music-current>0:00</span>
+    <input
+      type="range"
+      data-music-seek
+      aria-label="播放进度"
+      min="0"
+      max="0"
+      step="1"
+      value="0"
+      disabled
+    />
+    <span data-music-duration>0:00</span>
+  </div>
+  <div class="music-bottom">
+    <p class="music-status" data-music-status role="status" aria-live="polite">
+      准备配乐
+    </p>
+    <div class="music-volume">
+      <button
+        type="button"
+        data-music-mute
+        aria-label="静音配乐"
+        aria-pressed="false"
+        disabled>静音</button
+      >
+      <label
+        ><span class="sr-only">配乐音量</span><input
+          type="range"
+          data-music-volume
+          aria-label="配乐音量"
+          min="0"
+          max="30"
+          step="1"
+          value="12"
+          disabled
+        /></label
+      >
+      <span data-music-volume-value>12%</span>
+    </div>
+  </div>
+  <noscript
+    ><p class="music-noscript">
+      启用 JavaScript 后可使用配乐播放器，或<a href={music.src}>直接打开音频</a
+      >。
+    </p></noscript
+  >
+</section>
+
+<style>
+  .post-music {
+    margin: 1.5rem 0 2rem;
+    padding: 1.25rem 1.5rem;
+    border-block: 1px solid
+      color-mix(in srgb, var(--foreground) 18%, transparent);
+    background: color-mix(in srgb, var(--foreground) 2%, transparent);
+  }
+  .music-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .music-record {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    box-shadow:
+      inset 0 0 0 6px var(--background),
+      inset 0 0 0 7px color-mix(in srgb, var(--foreground) 18%, transparent);
+  }
+  .music-record span {
+    width: 10px;
+    height: 10px;
+    border: 3px solid var(--accent);
+    border-radius: 50%;
+  }
+  [data-state="playing"] .music-record {
+    border-color: var(--accent);
+  }
+  .music-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .music-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+  .music-title {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .music-artist {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    overflow-wrap: anywhere;
+  }
+  .music-play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 80px;
+    min-height: 44px;
+    flex-shrink: 0;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 0.4rem;
+    color: var(--accent);
+    font-size: 0.8rem;
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .music-play:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .music-play:disabled {
+    opacity: 0.5;
+  }
+  .music-timeline {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.8rem;
+    font-family: var(--font-firacode), monospace;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .music-timeline span {
+    min-width: 3ch;
+  }
+  input[type="range"] {
+    height: 28px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    min-width: 0;
+  }
+  input:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+  .music-timeline input {
+    flex: 1;
+    width: 100%;
+  }
+  .music-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.2rem;
+  }
+  .music-status {
+    font-size: 0.7rem;
+    color: color-mix(in srgb, var(--foreground) 72%, transparent);
+  }
+  .music-volume {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+  }
+  .music-volume button {
+    min-height: 44px;
+    min-width: 44px;
+    color: var(--accent);
+  }
+  .music-volume label {
+    display: flex;
+  }
+  .music-volume input {
+    width: 70px;
+  }
+  .music-volume > span {
+    min-width: 3ch;
+    font-variant-numeric: tabular-nums;
+  }
+  .music-noscript {
+    font-size: 0.8rem;
+  }
+  .music-noscript a {
+    text-decoration: underline;
+  }
+  @media (max-width: 479px) {
+    .post-music {
+      padding: 1rem;
+    }
+    .music-record {
+      display: none;
+    }
+    .music-heading {
+      gap: 0.6rem;
+    }
+    .music-bottom {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .music-volume {
+      align-self: flex-end;
+    }
+  }
+</style>

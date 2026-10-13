@@ -11,7 +11,7 @@ export const SITE = {
   postPerPage: 12,
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
   showArchives: true,
-  showGalleries: false,
+  showGalleries: true,
   showGalleriesInIndex: false, // Show galleries in the general paginated list (only if showGalleries is true)
   showBackButton: true, // show back button in post detail
   showTagsInCards: true, // show tag pills at the bottom of post cards

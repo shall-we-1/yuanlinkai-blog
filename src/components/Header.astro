@@ -74,7 +74,7 @@ const isActive = (path: string) => {
           <!-- Mobile hamburger (animated lines) -->
           <button
             id="menu-btn"
-            class="hamburger-btn sm:hidden"
+            class="hamburger-btn md:hidden"
             aria-label="打开菜单"
             aria-expanded="false"
             aria-controls="mobile-menu"
@@ -86,8 +86,8 @@ const isActive = (path: string) => {
             </div>
           </button>
 
-          <!-- Desktop links (always visible on sm+) -->
-          <ul class="hidden sm:flex sm:flex-row sm:items-center sm:gap-0.5 md:gap-1">
+          <!-- Desktop links (always visible on md+) -->
+          <ul class="hidden md:flex md:flex-row md:items-center md:gap-1">
             <li>
               <a
                 href="/posts"
@@ -151,11 +151,12 @@ const isActive = (path: string) => {
                       "nav-link",
                       { "nav-active": isActive("/galleries") },
                     ]}
-                    title="图库"
-                    aria-label="图库"
+                    title="图片"
+                    aria-label="图片"
+                    aria-current={isActive("/galleries") ? "page" : undefined}
                   >
-                    <IconGallery class="hidden sm:inline-block" />
-                    <span class="sm:sr-only">图库</span>
+                    <IconGallery class="hidden lg:inline-block" />
+                    <span>图片</span>
                   </LinkButton>
                 </li>
               )
@@ -421,7 +422,7 @@ const isActive = (path: string) => {
     cursor: pointer;
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 768px) {
     .hamburger-btn {
       display: none;
     }

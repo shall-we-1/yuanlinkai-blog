@@ -18,7 +18,7 @@ const localizedPathLabels: Record<string, string> = {
   stats: "足迹",
   search: "搜索",
   about: "关于",
-  galleries: "图库",
+  galleries: "图片",
 };
 
 const normalizePathname = (pathname: string) =>

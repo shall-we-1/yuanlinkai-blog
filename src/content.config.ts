@@ -1,6 +1,6 @@
-import { defineCollection } from "astro:content";
+import { defineCollection, reference } from "astro:content";
 import { z } from "astro/zod";
-import { glob } from "astro/loaders";
+import { file, glob } from "astro/loaders";
 import { SITE } from "@/config";
 
 export const BLOG_PATH = "src/data/blog";
@@ -23,6 +23,19 @@ const blog = defineCollection({
       canonicalURL: z.string().optional(),
       hideEditPost: z.boolean().optional(),
       timezone: z.string().optional(),
+      music: z
+        .object({
+          src: z
+            .string()
+            .regex(
+              /^\/audio\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:mp3|m4a|ogg|wav)$/i,
+              "配乐请使用 /audio/ 下的本地音频路径，文件名使用字母、数字、短横线或下划线"
+            ),
+          title: z.string().trim().min(1),
+          artist: z.string().trim().optional(),
+          loop: z.boolean().default(true),
+        })
+        .optional(),
     }),
 });
 
@@ -39,4 +52,17 @@ const galleries = defineCollection({
     }),
 });
 
-export const collections = { blog, galleries };
+const photos = defineCollection({
+  loader: file("src/data/photos.json"),
+  schema: ({ image }) =>
+    z.object({
+      image: image(),
+      description: z.string().trim().min(1),
+      alt: z.string().trim().min(1).optional(),
+      post: reference("blog"),
+      order: z.number().int().default(0),
+      draft: z.boolean().default(false),
+    }),
+});
+
+export const collections = { blog, galleries, photos };

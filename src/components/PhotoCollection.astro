@@ -1,0 +1,324 @@
+---
+import { Image } from "astro:assets";
+import { getCollection, getEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+import Breadcrumb from "./Breadcrumb.astro";
+import { SITE } from "@/config";
+import { getPath } from "@/utils/getPath";
+import postFilter from "@/utils/postFilter";
+import { getPostMusic } from "@/utils/postMusic";
+
+if (!SITE.showGalleries) return Astro.redirect("/404");
+
+const entries = (await getCollection("photos", ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id)
+);
+const resolved = await Promise.all(
+  entries.map(async photo => {
+    const post = await getEntry(photo.data.post);
+    if (!post)
+      throw new Error(
+        `图片 ${photo.id} 关联的文章不存在：${photo.data.post.id}`
+      );
+    if (!postFilter(post)) return null;
+    const date = new Intl.DateTimeFormat("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: SITE.timezone,
+    }).format(post.data.pubDatetime);
+    return {
+      photo,
+      href: getPath(post.id, post.filePath),
+      postLabel: post.data.title.trim() || `${date} 的文字`,
+      music: getPostMusic(post),
+    };
+  })
+);
+const photos = resolved.filter(item => item !== null);
+---
+
+<Layout
+  title={`图片 | ${SITE.title}`}
+  description="一些瞬间，一些文字。点击图片，读那时的故事。"
+>
+  <Header />
+  <Breadcrumb />
+  <main id="main-content" class="photo-page app-layout">
+    <header class="photo-intro">
+      <div>
+        <p class="photo-eyebrow">瞬间 / 文字</p>
+        <h1>图片<span aria-hidden="true">。</span></h1>
+        <p class="photo-lede">
+          把一些时刻留在这里。<br />点击图片，读那时的文字。
+        </p>
+      </div>
+      <p class="photo-count">
+        <span>{String(photos.length).padStart(2, "0")}</span> 张照片
+      </p>
+    </header>
+
+    {
+      photos.length > 0 ? (
+        <ul class="photo-grid" aria-label="图片集合">
+          {photos.map(({ photo, href, postLabel, music }, index) => (
+            <li>
+              <a
+                class="photo-link"
+                href={href}
+                aria-label={`${photo.data.description}；阅读：${postLabel}`}
+                data-music-link={music ? "true" : undefined}
+                data-music-src={music?.src}
+                data-music-title={music?.title}
+                data-music-loop={music ? String(music.loop) : undefined}
+              >
+                <figure>
+                  <div class="photo-frame">
+                    <Image
+                      src={photo.data.image}
+                      alt={photo.data.alt ?? photo.data.description}
+                      widths={[400, 800, 1200]}
+                      sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1024px) 48vw, 480px"
+                      loading={index < 2 ? "eager" : "lazy"}
+                      class="photo-image"
+                    />
+                  </div>
+                  <figcaption>
+                    <span class="photo-number" aria-hidden="true">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <div class="photo-caption">
+                      <p class="photo-description">{photo.data.description}</p>
+                      <p class="photo-destination">
+                        <span>{postLabel}</span>
+                        <span aria-hidden="true">↗</span>
+                      </p>
+                      {music && (
+                        <span class="photo-music-note">♪ 文章配有音乐</span>
+                      )}
+                    </div>
+                  </figcaption>
+                </figure>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <section class="photo-empty" aria-label="暂无图片">
+          <div class="empty-frame" aria-hidden="true">
+            <span />
+          </div>
+          <h2>照片还在路上</h2>
+          <p>下一张照片，会通向一段文字。</p>
+          <a href="/posts/">
+            先读一些文字 <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+      )
+    }
+    <p class="photo-end">留住一瞬，也留下一点当时的自己。</p>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .photo-page {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+  .photo-intro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--foreground) 16%, transparent);
+  }
+  .photo-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+  }
+  h1 {
+    margin-top: 0.7rem;
+    font-size: clamp(2.75rem, 8vw, 4.5rem);
+    line-height: 1.15;
+    font-weight: 650;
+    letter-spacing: -0.05em;
+  }
+  h1 span {
+    color: var(--accent);
+  }
+  .photo-lede {
+    margin-top: 1.25rem;
+    line-height: 1.9;
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
+  }
+  .photo-count {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--foreground) 65%, transparent);
+  }
+  .photo-count span {
+    display: block;
+    text-align: right;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-firacode), monospace;
+    font-size: 2rem;
+    color: var(--foreground);
+  }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem 2rem;
+    list-style: none;
+    padding: 0;
+  }
+  .photo-grid li {
+    min-width: 0;
+  }
+  .photo-link {
+    display: block;
+    text-decoration: none;
+    border-radius: 0.3rem;
+  }
+  figure {
+    margin: 0;
+  }
+  .photo-frame {
+    overflow: hidden;
+    background: color-mix(in srgb, var(--foreground) 5%, var(--background));
+    border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+    padding: 0.5rem;
+  }
+  .photo-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: filter 0.25s ease;
+  }
+  .photo-link:hover .photo-image {
+    filter: brightness(1.05);
+  }
+  figcaption {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .photo-number {
+    padding-top: 0.2rem;
+    font:
+      0.7rem var(--font-firacode),
+      monospace;
+    color: var(--accent);
+  }
+  .photo-caption {
+    flex: 1;
+    min-width: 0;
+  }
+  .photo-description {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  .photo-destination {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
+    font-size: 0.8rem;
+  }
+  .photo-destination span:first-child {
+    overflow-wrap: anywhere;
+  }
+  .photo-link:hover .photo-destination {
+    color: var(--accent);
+  }
+  .photo-music-note {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--accent);
+    font-size: 0.7rem;
+  }
+  .photo-empty {
+    padding: 3rem 1rem;
+    text-align: center;
+    border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+    background: color-mix(in srgb, var(--foreground) 2%, transparent);
+  }
+  .empty-frame {
+    position: relative;
+    width: 76px;
+    height: 90px;
+    margin: 0 auto 1.75rem;
+    border: 1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+    transform: rotate(-7deg);
+  }
+  .empty-frame::before {
+    content: "";
+    position: absolute;
+    inset: 8px 8px 20px;
+    border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  }
+  .empty-frame span {
+    position: absolute;
+    left: 31px;
+    bottom: 35px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.65;
+  }
+  .photo-empty h2 {
+    font-size: 1.15rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+  .photo-empty p {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: color-mix(in srgb, var(--foreground) 65%, transparent);
+  }
+  .photo-empty a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 44px;
+    margin-top: 1.2rem;
+    color: var(--accent);
+    font-size: 0.85rem;
+  }
+  .photo-end {
+    margin-top: 3rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  }
+  @media (max-width: 639px) {
+    .photo-page {
+      padding-top: 1.75rem;
+    }
+    .photo-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2.5rem;
+    }
+    .photo-intro {
+      margin-bottom: 1.75rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .photo-image {
+      transition: none;
+    }
+  }
+</style>

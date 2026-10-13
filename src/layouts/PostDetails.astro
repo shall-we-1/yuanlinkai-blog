@@ -11,6 +11,8 @@ import BackToTopButton from "@/components/BackToTopButton.astro";
 import GalleryEmbed from "@/components/GalleryEmbed.astro";
 import PostStats from "@/components/PostStats.astro";
 import RandomPost from "@/components/RandomPost.astro";
+import PostMusic from "@/components/PostMusic.astro";
+import { getPostMusic } from "@/utils/postMusic";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import { getReadingStats } from "@/utils/readingTime";
@@ -39,6 +41,7 @@ const {
 const { Content } = await render(post);
 const { wordCount, readingTime } = getReadingStats(post.body ?? "");
 const statsKey = getPath(post.id, post.filePath);
+const music = getPostMusic(post);
 
 let ogImageUrl: string | undefined;
 
@@ -216,6 +219,8 @@ const nextPost =
         </div>
       </div>
     </header>
+
+    {music && <PostMusic music={music} path={statsKey} />}
 
     <article
       id="article"
