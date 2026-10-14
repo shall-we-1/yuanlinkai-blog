@@ -9,6 +9,8 @@ declare module "canvas-nest.js" {
 
   export default class CanvasNest {
     constructor(element: Element, config?: CanvasNestConfig);
+    canvas: HTMLCanvasElement;
+    current: { x: number | null; y: number | null; max: number };
     destroy(): void;
   }
 }

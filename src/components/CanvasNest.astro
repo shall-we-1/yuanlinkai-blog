@@ -10,6 +10,7 @@
   type CanvasNestWindow = Window & {
     canvasNestInstance?: CanvasNest;
     canvasNestMediaCleanup?: () => void;
+    canvasNestPointerCleanup?: () => void;
   };
 
   const canvasWindow = window as CanvasNestWindow;
@@ -17,7 +18,16 @@
     "(max-width: 768px), (prefers-reduced-motion: reduce)";
 
   function destroyCanvasNest() {
+    canvasWindow.canvasNestPointerCleanup?.();
+    canvasWindow.canvasNestPointerCleanup = undefined;
+
+    // The library restores global mouse handlers on destroy. They are not ours:
+    // preserve the current handlers, including any installed since initialization.
+    const mouseMove = window.onmousemove;
+    const mouseOut = window.onmouseout;
     canvasWindow.canvasNestInstance?.destroy();
+    window.onmousemove = mouseMove;
+    window.onmouseout = mouseOut;
     canvasWindow.canvasNestInstance = undefined;
 
     document
@@ -39,7 +49,52 @@
       zIndex: 0,
     };
 
-    canvasWindow.canvasNestInstance = new CanvasNest(container, config);
+    const mouseMove = window.onmousemove;
+    const mouseOut = window.onmouseout;
+    const instance = new CanvasNest(container, config);
+    canvasWindow.canvasNestInstance = instance;
+
+    // canvas-nest assumes document coordinates and adds scrollTop to clientY.
+    // Our canvas is fixed to the viewport. Replace only its pointer handling;
+    // retain the library's drawing loop and resize sensor.
+    window.onmousemove = mouseMove;
+    window.onmouseout = mouseOut;
+    const pointerEvents = new AbortController();
+    const { signal } = pointerEvents;
+    const clearPointer = () => {
+      instance.current.x = null;
+      instance.current.y = null;
+    };
+    window.addEventListener(
+      "pointermove",
+      event => {
+        if (event.pointerType === "touch") return;
+        const rect = instance.canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        instance.current.x =
+          ((event.clientX - rect.left) * instance.canvas.width) / rect.width;
+        instance.current.y =
+          ((event.clientY - rect.top) * instance.canvas.height) / rect.height;
+      },
+      { passive: true, signal }
+    );
+    window.addEventListener(
+      "pointerout",
+      event => {
+        // Moving between links and other page elements is not leaving the page.
+        if (!event.relatedTarget) clearPointer();
+      },
+      { passive: true, signal }
+    );
+    window.addEventListener("blur", clearPointer, { signal });
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.hidden) clearPointer();
+      },
+      { signal }
+    );
+    canvasWindow.canvasNestPointerCleanup = () => pointerEvents.abort();
   }
 
   function initCanvasNest() {

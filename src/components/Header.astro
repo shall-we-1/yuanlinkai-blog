@@ -43,7 +43,6 @@ const isActive = (path: string) => {
           "py-3 sm:py-5",
           "relative w-full",
           "flex items-center justify-between gap-2 sm:gap-4",
-          "transition-all duration-300",
         ]}
       >
         <!-- Logo -->
@@ -490,34 +489,44 @@ const isActive = (path: string) => {
   let headerCleanup: AbortController | null = null;
   let scrollCleanup: AbortController | null = null;
 
-  function setupScrollPhysics() {
+  function setupScrollAppearance() {
     if (scrollCleanup) scrollCleanup.abort();
     scrollCleanup = new AbortController();
     const { signal } = scrollCleanup;
 
     const header = document.getElementById("main-header");
-    const navWrap = document.getElementById("top-nav-wrap");
     const borderLine = document.getElementById("header-border");
 
-    if (!header || !navWrap || !borderLine) return;
+    if (!header || !borderLine) return;
 
-    let rafPending = false;
+    let frame: number | null = null;
+    let wasScrolled: boolean | null = null;
+    const updateAppearance = () => {
+      frame = null;
+      if (signal.aborted) return;
+      const scrolled = window.scrollY > 15;
+      if (scrolled === wasScrolled) return;
+      wasScrolled = scrolled;
+
+      // Keep the header's layout height constant. Resizing it across this
+      // threshold triggers scroll anchoring and an expand/shrink feedback loop.
+      header.classList.toggle("header-scrolled", scrolled);
+      borderLine.classList.toggle("opacity-0", !scrolled);
+      borderLine.classList.toggle("opacity-100", scrolled);
+    };
     const handleScroll = () => {
-      if (rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(() => {
-        const scrolled = window.scrollY > 15;
-        header.classList.toggle("header-scrolled", scrolled);
-        navWrap.classList.toggle("sm:py-5", !scrolled);
-        navWrap.classList.toggle("sm:py-3", scrolled);
-        borderLine.classList.toggle("opacity-0", !scrolled);
-        borderLine.classList.toggle("opacity-100", scrolled);
-        rafPending = false;
-      });
+      if (frame === null) frame = requestAnimationFrame(updateAppearance);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true, signal });
-    handleScroll(); // Init instantly
+    signal.addEventListener(
+      "abort",
+      () => {
+        if (frame !== null) cancelAnimationFrame(frame);
+      },
+      { once: true }
+    );
+    updateAppearance();
   }
 
   function setupMobileNav() {
@@ -569,12 +578,16 @@ const isActive = (path: string) => {
   }
 
   // Initial load
-  setupScrollPhysics();
+  setupScrollAppearance();
   setupMobileNav();
 
   // Runs on view transitions navigation
+  document.addEventListener("astro:before-swap", () => {
+    headerCleanup?.abort();
+    scrollCleanup?.abort();
+  });
   document.addEventListener("astro:after-swap", () => {
-    setupScrollPhysics();
+    setupScrollAppearance();
     setupMobileNav();
   });
 </script>
